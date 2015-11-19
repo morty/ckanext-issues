@@ -476,41 +476,9 @@ class IssueController(BaseController):
 
     def all_issues_page(self):
         """
-        Display a page containing a list of all issues items, sorted by
-        category.
-
-        NB This doesn't seem to work - no connection between issues and
-        categories in the model
+        Display a page containing a list of all issues items
         """
-        # categories
-        categories = model.Session.query(
-            func.count(issuemodel.Issue.id).label('issue_count'),
-            issuemodel.Issue.issue_category_id)\
-            .filter(issuemodel.Issue.resolved == None)\
-            .group_by(issuemodel.Issue.issue_category_id)
-
-        c.categories = []
-        c.pkg_names = {}
-        for t in categories:
-            tc = issuemodel.IssueCategory.get(t.issue_category_id)
-            tc.issue_count = t.issue_count
-
-            # get issues items for each category
-            tc.issues = model.Session.query(issuemodel.Issue)\
-                .filter(issuemodel.Issue.resolved == None)\
-                .filter(
-                    issuemodel.Issue.issue_category_id == t.issue_category_id
-                )\
-                .order_by(issuemodel.Issue.created.desc())
-
-            for issues in tc.issues:
-                if issues.package_id:
-                    c.pkg_names[issues.package_id] = model.Package.get(
-                        issues.package_id).name
-
-            c.categories.append(tc)
-        # sort into alphabetical order
-        c.categories.sort(key=lambda x: x.name)
+        c.issues = model.Session.query(issuemodel.Issue).all()
         return render("issues/all_issues.html")
 
 
